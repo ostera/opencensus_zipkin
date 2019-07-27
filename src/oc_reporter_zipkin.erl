@@ -70,11 +70,17 @@ zipkin_span(Span, LocalEndpoint) ->
        <<"duration">> => wts:duration(Span#span.start_time, Span#span.end_time),
        <<"debug">> => false, %% TODO: get from attributes?
        <<"shared">> => false, %% TODO: get from attributes?
-       <<"localEndpoint">> => LocalEndpoint,
+       <<"localEndpoint">> => local_endpoint(Span#span.attributes, LocalEndpoint),
        %% <<"remoteEndpoint">> =>  %% TODO: get from attributes?
        <<"annotations">> => to_annotations(Span#span.time_events),
-       <<"tags">> => to_tags(Span#span.attributes) %% TODO: merge with oc_tags?
+       <<"tags">> => Span#span.attributes
      }.
+
+local_endpoint(Span, Default) ->
+  case maps:get(<<"service">>, Span, none) of
+    none -> Default;
+    ServiceName -> #{<<"serviceName">> => ServiceName}
+  end.
 
 to_annotations(TimeEvents) ->
     to_annotations(TimeEvents, []).
